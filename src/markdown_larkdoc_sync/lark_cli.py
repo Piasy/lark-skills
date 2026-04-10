@@ -16,13 +16,18 @@ class LarkCLI:
         self.binary = binary or os.environ.get('MARKDOWN_LARKDOC_SYNC_LARK_CLI', 'lark-cli')
 
     def run_json(self, args: Sequence[str]) -> dict[str, Any]:
-        result = subprocess.run(
-            [self.binary, *args],
-            check=False,
-            capture_output=True,
-            text=True,
-        )
+        try:
+            result = subprocess.run(
+                [self.binary, *args],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+        except FileNotFoundError as exc:
+            raise LarkCLIError(str(exc)) from exc
+
         if result.returncode != 0:
             message = result.stderr.strip() or result.stdout.strip() or 'lark-cli command failed'
             raise LarkCLIError(message)
+
         return json.loads(result.stdout)

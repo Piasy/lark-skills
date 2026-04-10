@@ -16,6 +16,9 @@ class ResolvedDoc:
 
 
 def _extract_kind_and_token(declared_doc: str) -> tuple[str, str]:
+    if not declared_doc.strip():
+        raise ValueError(f'unsupported declared doc: {declared_doc}')
+
     if declared_doc.startswith('//'):
         raise ValueError(f'unsupported declared doc: {declared_doc}')
 

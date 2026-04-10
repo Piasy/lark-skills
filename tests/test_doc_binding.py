@@ -2,6 +2,8 @@ import json
 import subprocess
 import sys
 
+import pytest
+
 from markdown_larkdoc_sync.doc_binding import resolve_declared_doc
 
 
@@ -84,3 +86,9 @@ def test_resolve_doc_key_cli_for_raw_token():
 
     payload = json.loads(result.stdout)
     assert payload['doc_key'] == 'docx:RawDocxToken'
+
+
+@pytest.mark.parametrize('declared_doc', ['', '   ', '\t\n'])
+def test_resolve_blank_declared_doc_rejected(declared_doc):
+    with pytest.raises(ValueError, match='unsupported declared doc'):
+        resolve_declared_doc(declared_doc, lark_cli=FakeLarkCLI())
