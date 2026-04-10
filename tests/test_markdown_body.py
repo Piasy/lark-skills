@@ -34,3 +34,17 @@ def test_extract_markdown_body_cli_smoke(tmp_path):
     payload = json.loads(result.stdout)
     assert payload['frontmatter']['title'] == '示例'
     assert payload['body'] == '# Title\n'
+
+
+def test_split_frontmatter_supports_crlf_boundaries():
+    frontmatter, body = split_frontmatter('---\r\ntitle: CRLF\r\n---\r\n\r\n# Title\r\n')
+
+    assert frontmatter == {'title': 'CRLF'}
+    assert body == '# Title\r\n'
+
+
+def test_split_frontmatter_allows_eof_after_closing_marker():
+    frontmatter, body = split_frontmatter('---\ntitle: EOF\n---')
+
+    assert frontmatter == {'title': 'EOF'}
+    assert body == ''

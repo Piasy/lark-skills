@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Any
 
@@ -7,6 +8,12 @@ try:
     import yaml
 except ModuleNotFoundError:  # pragma: no cover - exercised via fallback behavior
     yaml = None
+
+
+_FRONTMATTER_PATTERN = re.compile(
+    r'^---(?:\r?\n)(.*?)(?:\r?\n)---(?:\r?\n|$)',
+    flags=re.DOTALL,
+)
 
 
 def _parse_scalar(value: str) -> Any:
@@ -53,6 +60,8 @@ def _parse_simple_yaml_mapping(text: str) -> dict[str, Any]:
 
 
 def _load_frontmatter(frontmatter_text: str) -> dict[str, Any]:
+    # PyYAML is the primary parser. Keep a lightweight fallback only for
+    # environments where the runtime dependency is unexpectedly unavailable.
     if yaml is not None:
         data = yaml.safe_load(frontmatter_text) or {}
         if not isinstance(data, dict):
@@ -62,17 +71,13 @@ def _load_frontmatter(frontmatter_text: str) -> dict[str, Any]:
 
 
 def split_frontmatter(text: str) -> tuple[dict[str, Any], str]:
-    if not text.startswith('---\n'):
+    match = _FRONTMATTER_PATTERN.match(text)
+    if match is None:
         return {}, text
 
-    marker = '\n---\n'
-    end = text.find(marker, 4)
-    if end == -1:
-        return {}, text
-
-    frontmatter_text = text[4:end]
-    body = text[end + len(marker) :]
-    return _load_frontmatter(frontmatter_text), body.lstrip('\n')
+    frontmatter_text = match.group(1)
+    body = text[match.end() :]
+    return _load_frontmatter(frontmatter_text), body.lstrip('\r\n')
 
 
 def normalize_body(body: str) -> str:
