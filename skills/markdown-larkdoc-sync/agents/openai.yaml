@@ -1,0 +1,4 @@
+interface:
+  display_name: 'Markdown LarkDoc Sync'
+  short_description: '以中文执行单文档 Markdown 与飞书文档同步'
+  default_prompt: '同步一篇 Markdown 与其绑定的飞书文档，遵循单一 V2 工作流与保守合并策略。'
