@@ -20,3 +20,11 @@ def test_build_resolve_payload_marks_comment_solved():
     assert payload['data']['file_type'] == 'docx'
     assert payload['data']['comment_id'] == 'c1'
     assert payload['data']['is_solved'] is True
+
+
+def test_build_resolve_payload_schema_field_contract():
+    payload = build_resolve_payload('doc_token', 'docx', 'c1')
+
+    assert set(payload.keys()) == {'params', 'data'}
+    assert set(payload['params'].keys()) == {'file_token'}
+    assert set(payload['data'].keys()) == {'file_type', 'comment_id', 'is_solved'}
