@@ -16,8 +16,11 @@ class ResolvedDoc:
 
 
 def _extract_kind_and_token(declared_doc: str) -> tuple[str, str]:
+    if declared_doc.startswith('//'):
+        raise ValueError(f'unsupported declared doc: {declared_doc}')
+
     if '://' not in declared_doc:
-        if '/' in declared_doc and '.' in declared_doc.split('/')[0]:
+        if '/' in declared_doc:
             raise ValueError(f'unsupported declared doc: {declared_doc}')
         return 'docx', declared_doc
 

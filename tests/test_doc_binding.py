@@ -56,6 +56,24 @@ def test_resolve_scheme_less_url_rejected():
         raise AssertionError('expected ValueError for URL-like input without scheme')
 
 
+def test_resolve_protocol_relative_url_rejected():
+    try:
+        resolve_declared_doc('//example.feishu.cn/wiki/Token', lark_cli=FakeLarkCLI())
+    except ValueError as exc:
+        assert 'unsupported declared doc' in str(exc)
+    else:
+        raise AssertionError('expected ValueError for protocol-relative URL-like input')
+
+
+def test_resolve_path_like_declared_doc_rejected():
+    try:
+        resolve_declared_doc('wiki/Token', lark_cli=FakeLarkCLI())
+    except ValueError as exc:
+        assert 'unsupported declared doc' in str(exc)
+    else:
+        raise AssertionError('expected ValueError for path-like declared doc input')
+
+
 def test_resolve_doc_key_cli_for_raw_token():
     result = subprocess.run(
         [sys.executable, 'scripts/resolve_doc_key.py', 'RawDocxToken'],
