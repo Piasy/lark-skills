@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import date, datetime, time
 import re
 from pathlib import Path
 from typing import Any
@@ -14,6 +15,29 @@ _FRONTMATTER_PATTERN = re.compile(
     r'^---(?:\r?\n)(.*?)(?:\r?\n)---(?:\r?\n|$)',
     flags=re.DOTALL,
 )
+_OPENING_FENCE_PATTERN = re.compile(r'^[ ]{0,3}(?P<fence>(?:`{3,}|~{3,})).*$')
+_CLOSING_FENCE_PATTERN = re.compile(r'^[ ]{0,3}(?P<fence>(?:`{3,}|~{3,}))[ \t]*$')
+
+
+def _normalize_frontmatter_value(value: Any) -> Any:
+    if isinstance(value, datetime):
+        return value.isoformat()
+    if isinstance(value, date):
+        return value.isoformat()
+    if isinstance(value, time):
+        return value.isoformat()
+    if isinstance(value, dict):
+        return {
+            _normalize_frontmatter_value(key): _normalize_frontmatter_value(item)
+            for key, item in value.items()
+        }
+    if isinstance(value, list):
+        return [_normalize_frontmatter_value(item) for item in value]
+    if isinstance(value, tuple):
+        return [_normalize_frontmatter_value(item) for item in value]
+    if isinstance(value, set):
+        return [_normalize_frontmatter_value(item) for item in value]
+    return value
 
 
 def _parse_scalar(value: str) -> Any:
@@ -66,7 +90,10 @@ def _load_frontmatter(frontmatter_text: str) -> dict[str, Any]:
         data = yaml.safe_load(frontmatter_text) or {}
         if not isinstance(data, dict):
             raise ValueError('Frontmatter must decode to a mapping')
-        return data
+        normalized = _normalize_frontmatter_value(data)
+        if not isinstance(normalized, dict):
+            raise ValueError('Frontmatter must decode to a mapping')
+        return normalized
     return _parse_simple_yaml_mapping(frontmatter_text)
 
 
@@ -83,10 +110,29 @@ def split_frontmatter(text: str) -> tuple[dict[str, Any], str]:
 def normalize_body(body: str) -> str:
     normalized: list[str] = []
     in_fence = False
+    fence_char = ''
+    fence_length = 0
 
     for line in body.splitlines():
-        if line.startswith('```'):
-            in_fence = not in_fence
+        if in_fence:
+            closing_match = _CLOSING_FENCE_PATTERN.match(line)
+            if (
+                closing_match
+                and closing_match.group('fence').startswith(fence_char)
+                and len(closing_match.group('fence')) >= fence_length
+            ):
+                in_fence = False
+                fence_char = ''
+                fence_length = 0
+            normalized.append(line)
+            continue
+
+        opening_match = _OPENING_FENCE_PATTERN.match(line)
+        if opening_match:
+            fence = opening_match.group('fence')
+            in_fence = True
+            fence_char = fence[0]
+            fence_length = len(fence)
             normalized.append(line)
             continue
         normalized.append(line if in_fence else line.rstrip())
