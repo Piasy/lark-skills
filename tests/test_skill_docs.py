@@ -1,9 +1,11 @@
 from pathlib import Path
 
 
-def test_skill_mentions_single_sync_flow_and_subagent_review():
+def test_skill_mentions_frontmatter_and_script_contracts():
     content = Path('skills/markdown-larkdoc-sync/SKILL.md').read_text(encoding='utf-8')
 
-    assert '只支持一个手动触发的同步工作流' in content
-    assert '一致性审校必须由独立 sub-agent 执行' in content
-    assert '成功收尾时要解决全部未解决评论' in content
+    assert 'agent 不得手改 frontmatter' in content
+    assert 'agent 不得自行解析 frontmatter' in content
+    assert 'bin/read_frontmatter_binding.py' in content
+    assert 'bin/write_frontmatter_binding.py' in content
+    assert 'bin/resolve_all_comments.py' in content

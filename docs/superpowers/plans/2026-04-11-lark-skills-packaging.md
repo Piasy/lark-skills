@@ -641,7 +641,7 @@ git commit -m 'test: migrate contracts to skill-local bin and lib'
 - Create: `skills/markdown-larkdoc-sync/references/installation.md`
 - Modify: `tests/test_skill_docs.py`
 
-- [ ] **Step 1: 先写失败测试，锁定 SKILL 必须声明的新约束**
+- [x] **Step 1: 先写失败测试，锁定 SKILL 必须声明的新约束**
 
 ```python
 # tests/test_skill_docs.py
@@ -658,12 +658,12 @@ def test_skill_mentions_frontmatter_and_script_contracts():
     assert 'bin/resolve_all_comments.py' in content
 ```
 
-- [ ] **Step 2: 运行文档合同测试，确认当前内容不满足**
+- [x] **Step 2: 运行文档合同测试，确认当前内容不满足**
 
 Run: `python3 -m pytest tests/test_skill_docs.py -q`
 Expected: FAIL。
 
-- [ ] **Step 3: 更新 SKILL 和 references**
+- [x] **Step 3: 更新 SKILL 和 references**
 
 ```markdown
 # skills/markdown-larkdoc-sync/SKILL.md 核心改动点
@@ -690,7 +690,7 @@ Expected: FAIL。
 - 运行前提：`python3 >= 3.11`、`git`、`lark-cli`、已认证
 ```
 
-- [ ] **Step 4: 运行文档合同测试**
+- [x] **Step 4: 运行文档合同测试**
 
 Run: `python3 -m pytest tests/test_skill_docs.py -q`
 Expected: PASS。
