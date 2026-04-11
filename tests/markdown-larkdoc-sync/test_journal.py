@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from markdown_larkdoc_sync.journal import Journal
+from journal import Journal
 
 
 def test_write_run_persists_json_file_under_git_internal_dir(tmp_path: Path):

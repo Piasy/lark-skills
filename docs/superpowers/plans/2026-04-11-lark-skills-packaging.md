@@ -52,7 +52,7 @@
 - Create: `tests/markdown-larkdoc-sync/conftest.py`
 - Create: `tests/markdown-larkdoc-sync/test_layout_contract.py`
 
-- [ ] **Step 1: 先写失败测试，锁定运行时必须在 skill 目录内**
+- [x] **Step 1: 先写失败测试，锁定运行时必须在 skill 目录内**
 
 ```python
 # tests/markdown-larkdoc-sync/test_layout_contract.py
@@ -97,12 +97,12 @@ if str(LIB) not in sys.path:
     sys.path.insert(0, str(LIB))
 ```
 
-- [ ] **Step 2: 运行测试，确认骨架尚未完成**
+- [x] **Step 2: 运行测试，确认骨架尚未完成**
 
 Run: `python3 -m pytest tests/markdown-larkdoc-sync/test_layout_contract.py -q`
 Expected: FAIL，提示缺少 `bin/*` 与 `lib/*`。
 
-- [ ] **Step 3: 创建目录并迁移现有脚本与模块到 skill 目录**
+- [x] **Step 3: 创建目录并迁移现有脚本与模块到 skill 目录**
 
 ```bash
 mkdir -p skills/markdown-larkdoc-sync/bin skills/markdown-larkdoc-sync/lib tests/markdown-larkdoc-sync
@@ -137,12 +137,12 @@ if str(LIB) not in sys.path:
     sys.path.insert(0, str(LIB))
 ```
 
-- [ ] **Step 4: 运行布局测试，确认骨架可见**
+- [x] **Step 4: 运行布局测试，确认骨架可见**
 
 Run: `python3 -m pytest tests/markdown-larkdoc-sync/test_layout_contract.py -q`
 Expected: PASS with `1 passed`.
 
-- [ ] **Step 5: 提交骨架迁移**
+- [x] **Step 5: 提交骨架迁移**
 
 ```bash
 git add skills/markdown-larkdoc-sync/bin skills/markdown-larkdoc-sync/lib tests/markdown-larkdoc-sync/conftest.py tests/markdown-larkdoc-sync/test_layout_contract.py
@@ -158,7 +158,7 @@ git commit -m 'refactor: initialize skill-local runtime layout'
 - Create: `skills/markdown-larkdoc-sync/bin/extract_markdown_body.py`
 - Create: `tests/markdown-larkdoc-sync/test_frontmatter_contract.py`
 
-- [ ] **Step 1: 先写失败测试，锁定 parser、writer 与 CLI 契约**
+- [x] **Step 1: 先写失败测试，锁定 parser、writer 与 CLI 契约**
 
 ```python
 # tests/markdown-larkdoc-sync/test_frontmatter_contract.py
@@ -266,12 +266,12 @@ def test_read_and_write_binding_cli_contract(tmp_path: Path):
     assert payload['body'] == '# Body\n'
 ```
 
-- [ ] **Step 2: 运行测试，确认 frontmatter 新能力尚未实现**
+- [x] **Step 2: 运行测试，确认 frontmatter 新能力尚未实现**
 
 Run: `python3 -m pytest tests/markdown-larkdoc-sync/test_frontmatter_contract.py -q`
 Expected: FAIL，提示 `frontmatter` 模块或脚本不存在。
 
-- [ ] **Step 3: 实现 frontmatter 受限子集 parser/writer 与三个 CLI**
+- [x] **Step 3: 实现 frontmatter 受限子集 parser/writer 与三个 CLI**
 
 ```python
 # skills/markdown-larkdoc-sync/lib/frontmatter.py
@@ -551,12 +551,12 @@ if __name__ == '__main__':
     raise SystemExit(main())
 ```
 
-- [ ] **Step 4: 运行 frontmatter 测试，确认契约通过**
+- [x] **Step 4: 运行 frontmatter 测试，确认契约通过**
 
 Run: `python3 -m pytest tests/markdown-larkdoc-sync/test_frontmatter_contract.py -q`
 Expected: PASS。
 
-- [ ] **Step 5: 提交 frontmatter 与绑定入口实现**
+- [x] **Step 5: 提交 frontmatter 与绑定入口实现**
 
 ```bash
 git add skills/markdown-larkdoc-sync/lib/frontmatter.py skills/markdown-larkdoc-sync/bin/read_frontmatter_binding.py skills/markdown-larkdoc-sync/bin/write_frontmatter_binding.py skills/markdown-larkdoc-sync/bin/extract_markdown_body.py tests/markdown-larkdoc-sync/test_frontmatter_contract.py
@@ -574,7 +574,7 @@ git commit -m 'feat: add restricted frontmatter parser and binding scripts'
 - Modify: `tests/markdown-larkdoc-sync/test_jsonio.py`
 - Modify: `tests/markdown-larkdoc-sync/test_journal.py`
 
-- [ ] **Step 1: 先把现有测试移动到按 skill 分组目录**
+- [x] **Step 1: 先把现有测试移动到按 skill 分组目录**
 
 ```bash
 git mv tests/test_cli_smoke_contracts.py tests/markdown-larkdoc-sync/test_cli_smoke_contracts.py
@@ -587,12 +587,12 @@ git mv tests/test_journal.py tests/markdown-larkdoc-sync/test_journal.py
 git mv tests/test_markdown_body.py tests/markdown-larkdoc-sync/test_markdown_body.py
 ```
 
-- [ ] **Step 2: 更新测试导入路径与脚本路径，先让它失败一次**
+- [x] **Step 2: 更新测试导入路径与脚本路径，先让它失败一次**
 
 Run: `python3 -m pytest tests/markdown-larkdoc-sync/test_cli_smoke_contracts.py -q`
 Expected: FAIL，提示仍引用旧 `scripts/` 或旧模块路径。
 
-- [ ] **Step 3: 修改测试为 skill 入口契约**
+- [x] **Step 3: 修改测试为 skill 入口契约**
 
 ```python
 # tests/markdown-larkdoc-sync/test_cli_smoke_contracts.py 关键常量
@@ -621,12 +621,12 @@ from comments import build_resolve_payload, flatten_open_comments
 from git_sync import build_sync_message, classify_candidates, find_last_sync_commit
 ```
 
-- [ ] **Step 4: 运行模块与脚本合同测试**
+- [x] **Step 4: 运行模块与脚本合同测试**
 
 Run: `python3 -m pytest tests/markdown-larkdoc-sync/test_cli_smoke_contracts.py tests/markdown-larkdoc-sync/test_doc_binding.py tests/markdown-larkdoc-sync/test_git_sync.py tests/markdown-larkdoc-sync/test_comments.py -q`
 Expected: PASS。
 
-- [ ] **Step 5: 提交测试迁移与契约更新**
+- [x] **Step 5: 提交测试迁移与契约更新**
 
 ```bash
 git add tests/markdown-larkdoc-sync

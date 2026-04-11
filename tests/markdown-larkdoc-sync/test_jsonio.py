@@ -1,7 +1,7 @@
 import io
 import json
 
-from markdown_larkdoc_sync.jsonio import dump_json
+from jsonio import dump_json
 
 
 def test_dump_json_is_utf8_sorted_and_newline_terminated():

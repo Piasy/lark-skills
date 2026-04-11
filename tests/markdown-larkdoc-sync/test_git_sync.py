@@ -3,11 +3,15 @@ import subprocess
 import sys
 from pathlib import Path
 
-from markdown_larkdoc_sync.git_sync import (
+from git_sync import (
     build_sync_message,
     classify_candidates,
     find_last_sync_commit,
 )
+
+
+ROOT = Path(__file__).resolve().parents[2]
+BIN = ROOT / 'skills' / 'markdown-larkdoc-sync' / 'bin'
 
 
 def test_build_sync_message_contains_required_trailers():
@@ -80,7 +84,7 @@ def test_git_sync_scripts_smoke_on_temp_repo(tmp_path):
     create_result = subprocess.run(
         [
             sys.executable,
-            str(Path(__file__).resolve().parents[1] / 'scripts' / 'create_sync_commit.py'),
+            str(BIN / 'create_sync_commit.py'),
             'docs/a.md',
             'https://example.feishu.cn/wiki/x',
             'user',
@@ -99,7 +103,7 @@ def test_git_sync_scripts_smoke_on_temp_repo(tmp_path):
     find_result = subprocess.run(
         [
             sys.executable,
-            str(Path(__file__).resolve().parents[1] / 'scripts' / 'find_last_sync_commit.py'),
+            str(BIN / 'find_last_sync_commit.py'),
             'docs/a.md',
             'docx:doc_real',
         ],

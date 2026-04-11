@@ -5,13 +5,13 @@ import sys
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[1]
-SCRIPTS = ROOT / 'scripts'
+ROOT = Path(__file__).resolve().parents[2]
+BIN = ROOT / 'skills' / 'markdown-larkdoc-sync' / 'bin'
 
 
 def _run_script(script_name: str, args: list[str], *, cwd: Path | None = None, env: dict[str, str] | None = None) -> dict:
     result = subprocess.run(
-        [sys.executable, str(SCRIPTS / script_name), *args],
+        [sys.executable, str(BIN / script_name), *args],
         cwd=cwd,
         check=True,
         capture_output=True,

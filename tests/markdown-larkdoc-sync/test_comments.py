@@ -1,4 +1,4 @@
-from markdown_larkdoc_sync.comments import build_resolve_payload, flatten_open_comments
+from comments import build_resolve_payload, flatten_open_comments
 
 
 def test_flatten_open_comments_skips_solved_cards():
@@ -60,6 +60,6 @@ def test_collect_open_comment_ids_returns_all_unsolved_ids():
         }
     }
 
-    from markdown_larkdoc_sync.comments import collect_open_comment_ids
+    from comments import collect_open_comment_ids
 
     assert collect_open_comment_ids(payload) == ['c1', 'c3']

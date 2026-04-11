@@ -1,10 +1,15 @@
 import json
 import subprocess
 import sys
+from pathlib import Path
 
 import pytest
 
-from markdown_larkdoc_sync.doc_binding import resolve_declared_doc
+from doc_binding import resolve_declared_doc
+
+
+ROOT = Path(__file__).resolve().parents[2]
+BIN = ROOT / 'skills' / 'markdown-larkdoc-sync' / 'bin'
 
 
 class FakeLarkCLI:
@@ -78,10 +83,11 @@ def test_resolve_path_like_declared_doc_rejected():
 
 def test_resolve_doc_key_cli_for_raw_token():
     result = subprocess.run(
-        [sys.executable, 'scripts/resolve_doc_key.py', 'RawDocxToken'],
+        [sys.executable, str(BIN / 'resolve_doc_key.py'), 'RawDocxToken'],
         check=True,
         capture_output=True,
         text=True,
+        cwd=ROOT,
     )
 
     payload = json.loads(result.stdout)
