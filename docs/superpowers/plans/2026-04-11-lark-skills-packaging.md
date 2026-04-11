@@ -710,7 +710,7 @@ git commit -m 'docs: align skill workflow and frontmatter constraints'
 - Create: `LICENSE`
 - Create: `tests/markdown-larkdoc-sync/test_readme_contract.py`
 
-- [ ] **Step 1: 先写失败测试，锁定 README 关键信息**
+- [x] **Step 1: 先写失败测试，锁定 README 关键信息**
 
 ```python
 # tests/markdown-larkdoc-sync/test_readme_contract.py
@@ -739,7 +739,7 @@ def test_mit_license_exists():
     assert 'MIT License' in Path('LICENSE').read_text(encoding='utf-8')
 ```
 
-- [ ] **Step 2: 运行测试，确认文档文件尚未创建**
+- [x] **Step 2: 运行测试，确认文档文件尚未创建**
 
 Run: `python3 -m pytest tests/markdown-larkdoc-sync/test_readme_contract.py -q`
 Expected: FAIL。
