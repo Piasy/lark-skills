@@ -744,7 +744,7 @@ def test_mit_license_exists():
 Run: `python3 -m pytest tests/markdown-larkdoc-sync/test_readme_contract.py -q`
 Expected: FAIL。
 
-- [ ] **Step 3: 编写 README.zh.md、README.md 与 LICENSE**
+- [x] **Step 3: 编写 README.zh.md、README.md 与 LICENSE**
 
 ```markdown
 # README.zh.md 最小目录
@@ -772,7 +772,7 @@ Expected: FAIL。
 使用标准 MIT License 模板文本。
 ```
 
-- [ ] **Step 4: 运行 README 合同测试**
+- [x] **Step 4: 运行 README 合同测试**
 
 Run: `python3 -m pytest tests/markdown-larkdoc-sync/test_readme_contract.py -q`
 Expected: PASS。
@@ -794,7 +794,7 @@ git commit -m 'docs: add bilingual readme and mit license'
 - Modify: `tests/markdown-larkdoc-sync/test_markdown_body.py`
 - Create: `tests/markdown-larkdoc-sync/test_repo_boundary_contract.py`
 
-- [ ] **Step 1: 先写失败测试，锁定仓库边界收敛结果**
+- [x] **Step 1: 先写失败测试，锁定仓库边界收敛结果**
 
 ```python
 # tests/markdown-larkdoc-sync/test_repo_boundary_contract.py
@@ -811,12 +811,12 @@ def test_pyproject_has_no_pyyaml_runtime_dependency():
     assert 'PyYAML' not in content
 ```
 
-- [ ] **Step 2: 运行边界测试，确认当前仓库还未收敛**
+- [x] **Step 2: 运行边界测试，确认当前仓库还未收敛**
 
 Run: `python3 -m pytest tests/markdown-larkdoc-sync/test_repo_boundary_contract.py -q`
 Expected: FAIL。
 
-- [ ] **Step 3: 删除旧目录并清理 pyproject 依赖**
+- [x] **Step 3: 删除旧目录并清理 pyproject 依赖**
 
 ```bash
 rm -rf scripts src
@@ -849,7 +849,7 @@ testpaths = ['tests']
 # 只保留对 bin/extract_markdown_body.py 与 lib/frontmatter.py 的合同测试。
 ```
 
-- [ ] **Step 4: 运行全量测试，确认旧路径引用已清除**
+- [x] **Step 4: 运行全量测试，确认旧路径引用已清除**
 
 Run: `python3 -m pytest -q`
 Expected: PASS。
