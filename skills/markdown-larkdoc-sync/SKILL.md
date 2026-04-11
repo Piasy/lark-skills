@@ -1,13 +1,13 @@
 ---
 name: markdown-larkdoc-sync
-description: Use when需要对一篇 Markdown 与其绑定飞书文档执行手动单文档 V2 同步，并要求遵循 Git 基线、评论读取与解决、sub-agent 一致性审校和专用 sync commit 收尾。
+description: Use when需要对一篇 Markdown 与其绑定飞书文档执行手动同步，并要求遵循 Git 基线、评论读取与解决、sub-agent 一致性审校和专用 sync commit 收尾。
 ---
 
 # markdown-larkdoc-sync
 
 开始前先确认：
 
-- 只支持一个手动触发的 V2 工作流。
+- 只支持一个手动触发的同步工作流。
 - 每次只处理一篇明确指定的 Markdown 文件。
 - frontmatter 只读取稳定绑定字段。
 - 一致性审校必须由独立 sub-agent 执行，且 sub-agent 使用与父 agent 相同的模型配置。
