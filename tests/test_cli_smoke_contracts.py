@@ -38,8 +38,12 @@ if log_path:
         fh.write(json.dumps(args, ensure_ascii=False) + '\\n')
 
 if args[:3] == ['drive', 'file.comments', 'list']:
+    params = json.loads(args[args.index('--params') + 1])
+    if set(params.keys()) != {'file_token', 'file_type'}:
+        print(json.dumps({'error': 'bad_params', 'params': params}, ensure_ascii=False), file=sys.stderr)
+        raise SystemExit(3)
     print(json.dumps({'items': [
-        {'comment_id': 'c1', 'is_solved': False},
+        {'comment_id': 'c1', 'is_solved': False, 'reply_list': {'replies': [{'reply_id': 'r1'}]}},
         {'comment_id': 'c2', 'is_solved': True}
     ]}, ensure_ascii=False))
     raise SystemExit(0)
@@ -47,6 +51,12 @@ if args[:3] == ['drive', 'file.comments', 'list']:
 if args[:3] == ['drive', 'file.comments', 'patch']:
     params = json.loads(args[args.index('--params') + 1])
     data = json.loads(args[args.index('--data') + 1])
+    if set(params.keys()) != {'file_token', 'comment_id', 'file_type'}:
+        print(json.dumps({'error': 'bad_params', 'params': params}, ensure_ascii=False), file=sys.stderr)
+        raise SystemExit(3)
+    if set(data.keys()) != {'is_solved'}:
+        print(json.dumps({'error': 'bad_data', 'data': data}, ensure_ascii=False), file=sys.stderr)
+        raise SystemExit(3)
     print(json.dumps({'status': 'ok', 'params': params, 'data': data}, ensure_ascii=False))
     raise SystemExit(0)
 
@@ -143,15 +153,16 @@ def test_fetch_open_comments_with_fake_lark_cli_injection(tmp_path):
         'FAKE_LARK_LOG': str(log_path),
     }
 
-    payload = _run_script('fetch_open_comments.py', ['doc_token'], cwd=ROOT, env=env)
+    payload = _run_script('fetch_open_comments.py', ['doc_token', 'docx'], cwd=ROOT, env=env)
 
     assert sorted(payload.keys()) == ['items']
     assert [item['comment_id'] for item in payload['items']] == ['c1']
+    assert payload['items'][0]['reply_list']['replies'][0]['reply_id'] == 'r1'
 
     calls = [json.loads(line) for line in log_path.read_text(encoding='utf-8').splitlines() if line.strip()]
     assert calls[0][:3] == ['drive', 'file.comments', 'list']
     params = json.loads(calls[0][calls[0].index('--params') + 1])
-    assert params == {'file_token': 'doc_token'}
+    assert params == {'file_token': 'doc_token', 'file_type': 'docx'}
 
 
 def test_resolve_all_comments_with_fake_lark_cli_injection(tmp_path):
@@ -165,16 +176,19 @@ def test_resolve_all_comments_with_fake_lark_cli_injection(tmp_path):
 
     payload = _run_script(
         'resolve_all_comments.py',
-        ['doc_token', 'docx', 'c1', 'c2'],
+        ['doc_token', 'docx'],
         cwd=ROOT,
         env=env,
     )
 
-    assert sorted(payload.keys()) == ['results']
-    assert len(payload['results']) == 2
-    assert [item['data']['comment_id'] for item in payload['results']] == ['c1', 'c2']
+    assert sorted(payload.keys()) == ['resolved_comment_ids', 'results']
+    assert payload['resolved_comment_ids'] == ['c1']
+    assert len(payload['results']) == 1
+    assert [item['params']['comment_id'] for item in payload['results']] == ['c1']
+    assert all(item['params']['file_type'] == 'docx' for item in payload['results'])
     assert all(item['data']['is_solved'] is True for item in payload['results'])
 
     calls = [json.loads(line) for line in log_path.read_text(encoding='utf-8').splitlines() if line.strip()]
     assert len(calls) == 2
-    assert all(call[:3] == ['drive', 'file.comments', 'patch'] for call in calls)
+    assert calls[0][:3] == ['drive', 'file.comments', 'list']
+    assert calls[1][:3] == ['drive', 'file.comments', 'patch']

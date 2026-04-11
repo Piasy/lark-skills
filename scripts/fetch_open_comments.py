@@ -19,10 +19,17 @@ from markdown_larkdoc_sync.lark_cli import LarkCLI
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('file_token')
+    parser.add_argument('file_type')
     args = parser.parse_args()
 
     raw = LarkCLI().run_json(
-        ['drive', 'file.comments', 'list', '--params', json.dumps({'file_token': args.file_token}, ensure_ascii=False)]
+        [
+            'drive',
+            'file.comments',
+            'list',
+            '--params',
+            json.dumps({'file_token': args.file_token, 'file_type': args.file_type}, ensure_ascii=False),
+        ]
     )
     dump_json({'items': flatten_open_comments(raw)}, sys.stdout)
     return 0
