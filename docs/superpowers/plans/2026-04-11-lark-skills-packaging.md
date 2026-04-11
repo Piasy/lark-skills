@@ -695,7 +695,7 @@ Expected: FAIL。
 Run: `python3 -m pytest tests/test_skill_docs.py -q`
 Expected: PASS。
 
-- [ ] **Step 5: 提交文档和 references 更新**
+- [x] **Step 5: 提交文档和 references 更新**
 
 ```bash
 git add skills/markdown-larkdoc-sync/SKILL.md skills/markdown-larkdoc-sync/references/frontmatter-subset.md skills/markdown-larkdoc-sync/references/installation.md tests/test_skill_docs.py
@@ -777,7 +777,7 @@ Expected: FAIL。
 Run: `python3 -m pytest tests/markdown-larkdoc-sync/test_readme_contract.py -q`
 Expected: PASS。
 
-- [ ] **Step 5: 提交 README 与 License**
+- [x] **Step 5: 提交 README 与 License**
 
 ```bash
 git add README.zh.md README.md LICENSE tests/markdown-larkdoc-sync/test_readme_contract.py
@@ -854,7 +854,7 @@ testpaths = ['tests']
 Run: `python3 -m pytest -q`
 Expected: PASS。
 
-- [ ] **Step 5: 提交边界收敛与依赖清理**
+- [x] **Step 5: 提交边界收敛与依赖清理**
 
 ```bash
 git add pyproject.toml tests/markdown-larkdoc-sync/test_repo_boundary_contract.py tests/markdown-larkdoc-sync/test_markdown_body.py
@@ -867,12 +867,12 @@ git commit -m 'refactor: remove root runtime and drop pyyaml dependency'
 **Files:**
 - Modify: `docs/superpowers/specs/2026-04-11-lark-skills-packaging-design.md` (可选，仅在实施偏差时补充实现备注)
 
-- [ ] **Step 1: 运行全量测试**
+- [x] **Step 1: 运行全量测试**
 
 Run: `python3 -m pytest -q`
 Expected: PASS。
 
-- [ ] **Step 2: 本地验证 skills source 能被扫描和安装**
+- [x] **Step 2: 本地验证 skills source 能被扫描和安装**
 
 Run: `npx skills add . -g -y --list`
 Expected: 输出包含 `markdown-larkdoc-sync`。
@@ -883,7 +883,7 @@ Expected: 安装成功，不报缺少 `scripts/` 或 `src/`。
 Run: `npx skills list -g --json`
 Expected: 已安装列表包含 `markdown-larkdoc-sync`。
 
-- [ ] **Step 3: 在无 PyYAML 环境验证**
+- [x] **Step 3: 在无 PyYAML 环境验证**
 
 Run: `python3 -m venv .tmp-no-yaml`
 Expected: 创建独立虚拟环境。
@@ -891,7 +891,7 @@ Expected: 创建独立虚拟环境。
 Run: `. .tmp-no-yaml/bin/activate && pip install -e .[dev] && python -m pytest -q`
 Expected: PASS，且测试不依赖 PyYAML。
 
-- [ ] **Step 4: 清理临时环境并提交验证记录**
+- [x] **Step 4: 清理临时环境并提交验证记录**
 
 Run: `rm -rf .tmp-no-yaml`
 Expected: 临时目录清理完成。
