@@ -82,7 +82,8 @@ def replace_mermaid_fences_with_placeholders(markdown: str) -> tuple[str, list[M
 
         placeholder = f'__MDSYNC_MERMAID_{marker}_{len(blocks) + 1:04d}__'
         indent = start_match.group(1)
-        output.append(f'{indent}{placeholder}{current_eol or "\n"}')
+        line_ending = current_eol or '\n'
+        output.append(f'{indent}{placeholder}{line_ending}')
         blocks.append(MermaidBlock(placeholder=placeholder, code=code))
 
         i = j + 1
