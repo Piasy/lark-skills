@@ -11,7 +11,7 @@ LIB = SKILL_ROOT / 'lib'
 if str(LIB) not in sys.path:
     sys.path.insert(0, str(LIB))
 
-from git_sync import build_sync_message
+from git_sync import build_sync_message, resolve_repo_root, to_repo_relative_markdown_path
 from jsonio import dump_json
 
 
@@ -25,14 +25,22 @@ def main() -> int:
     parser.add_argument('profile')
     args = parser.parse_args()
 
-    subprocess.run(['git', 'add', args.markdown_path], check=True)
+    cwd = Path.cwd()
+    repo_root = resolve_repo_root(cwd)
+    normalized_markdown_path = to_repo_relative_markdown_path(
+        args.markdown_path,
+        repo_root=repo_root,
+        cwd=cwd,
+    )
+
+    subprocess.run(['git', 'add', normalized_markdown_path], check=True)
     subprocess.run(
         [
             'git',
             'commit',
             '-m',
             build_sync_message(
-                markdown_path=args.markdown_path,
+                markdown_path=normalized_markdown_path,
                 declared_doc=args.declared_doc,
                 identity=args.identity,
                 resolved_file_type=args.resolved_file_type,
@@ -40,7 +48,7 @@ def main() -> int:
                 profile=args.profile,
             ),
             '--',
-            args.markdown_path,
+            normalized_markdown_path,
         ],
         check=True,
         capture_output=True,

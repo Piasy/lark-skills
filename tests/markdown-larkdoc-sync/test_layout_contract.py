@@ -9,6 +9,9 @@ def test_runtime_layout_contains_required_bin_and_lib_files():
         'bin/resolve_doc_key.py',
         'bin/find_last_sync_commit.py',
         'bin/fetch_open_comments.py',
+        'bin/fetch_remote_markdown.py',
+        'bin/write_back_and_verify.py',
+        'bin/create_bootstrap_doc.py',
         'bin/resolve_all_comments.py',
         'bin/create_sync_commit.py',
         'lib/__init__.py',
@@ -18,6 +21,7 @@ def test_runtime_layout_contains_required_bin_and_lib_files():
         'lib/git_sync.py',
         'lib/comments.py',
         'lib/journal.py',
+        'lib/mermaid_addons.py',
     }
 
     missing = [rel for rel in sorted(expected) if not (SKILL_ROOT / rel).exists()]

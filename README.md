@@ -28,7 +28,20 @@ For `markdown-larkdoc-sync`, frontmatter is a restricted subset and must be hand
 
 ## Current Skills
 
-- `markdown-larkdoc-sync`
+- `markdown-larkdoc-sync`: a script-first workflow for manually syncing one Markdown file with one Lark doc, including frontmatter binding read/write, doc key resolution, sync baseline lookup, open-comment fetch/resolve, and sync-commit finalization.
+
+This repository currently contains only the skill above; future additions are defined by discoverable `SKILL.md` files under `skills/`.
+
+## Trigger Prompt Example
+
+When asking an agent to run this workflow, explicitly name the skill `markdown-larkdoc-sync` in your prompt.
+This avoids accidental routing to other installed `lark-*` skills that also call `lark-cli`.
+
+Example prompt:
+
+```text
+Please use the markdown-larkdoc-sync skill to sync docs/weekly.md with its bound Lark doc.
+```
 
 ## License
 

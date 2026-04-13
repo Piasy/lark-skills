@@ -4,6 +4,36 @@ import subprocess
 from pathlib import Path
 
 
+def resolve_repo_root(workdir: Path) -> Path:
+    result = subprocess.run(
+        ['git', '-C', str(workdir), 'rev-parse', '--show-toplevel'],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        raise RuntimeError('git repository not initialized')
+    return Path(result.stdout.strip())
+
+
+def to_repo_relative_markdown_path(markdown_path: str, *, repo_root: Path, cwd: Path | None = None) -> str:
+    base_dir = cwd or Path.cwd()
+    raw_path = Path(markdown_path)
+    absolute = raw_path if raw_path.is_absolute() else (base_dir / raw_path)
+    absolute = absolute.resolve()
+
+    root = repo_root.resolve()
+    try:
+        relative = absolute.relative_to(root)
+    except ValueError as exc:
+        raise ValueError(f'markdown path is outside git repo root: {markdown_path}') from exc
+
+    normalized = relative.as_posix()
+    if not normalized or normalized == '.':
+        raise ValueError(f'markdown path is not a file path: {markdown_path}')
+    return normalized
+
+
 def build_sync_message(
     *,
     markdown_path: str,
@@ -115,7 +145,13 @@ def _is_git_repo(repo_root: Path) -> bool:
     return result.returncode == 0 and result.stdout.strip() == 'true'
 
 
-def find_last_sync_commit(repo_root: Path, doc_key: str, markdown_path: str) -> dict[str, str]:
+def find_last_sync_commit(
+    repo_root: Path,
+    doc_key: str,
+    markdown_path: str,
+    *,
+    cwd: Path | None = None,
+) -> dict[str, str]:
     if not _is_git_repo(repo_root):
         return {
             'status': 'not_found',
@@ -123,6 +159,21 @@ def find_last_sync_commit(repo_root: Path, doc_key: str, markdown_path: str) -> 
             'commit': '',
             'markdown_path': markdown_path,
             'reason': 'git repository not initialized',
+        }
+
+    try:
+        normalized_markdown_path = to_repo_relative_markdown_path(
+            markdown_path,
+            repo_root=resolve_repo_root(repo_root),
+            cwd=cwd or repo_root,
+        )
+    except (RuntimeError, ValueError) as exc:
+        return {
+            'status': 'not_found',
+            'doc_key': doc_key,
+            'commit': '',
+            'markdown_path': markdown_path,
+            'reason': str(exc),
         }
 
     result = subprocess.run(
@@ -136,7 +187,7 @@ def find_last_sync_commit(repo_root: Path, doc_key: str, markdown_path: str) -> 
             'status': 'not_found',
             'doc_key': doc_key,
             'commit': '',
-            'markdown_path': markdown_path,
+            'markdown_path': normalized_markdown_path,
             'reason': 'failed to read git log',
         }
 
@@ -144,6 +195,6 @@ def find_last_sync_commit(repo_root: Path, doc_key: str, markdown_path: str) -> 
     return classify_candidates(
         records,
         doc_key=doc_key,
-        markdown_path=markdown_path,
+        markdown_path=normalized_markdown_path,
         head_paths=_list_head_paths(repo_root),
     )

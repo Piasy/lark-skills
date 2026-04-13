@@ -476,3 +476,155 @@ npx skills list -g --json
 - `resolve_all_comments.py` 语义与脚本命名一致，会自动解决当前全部未解决评论。
 - `SKILL.md`、README 与脚本契约一致，不再出现“步骤描述与脚本语义不一致”的情况。
 - 全量测试通过。
+
+## Mermaid 文本绘图写回设计
+
+### 背景
+
+在 `markdown-larkdoc-sync` 的使用场景中，Markdown 中的 fenced `mermaid` 代码块需要在飞书文档中呈现为“文本绘图（add-on）”而不是 whiteboard。实测发现：
+
+- `lark-cli docs +update/+create` 直接处理 ` ```mermaid ` 时，会生成 whiteboard 块。
+- `docs +update` 不支持直接在 Markdown 中写 `<add-ons .../>` 来创建文本绘图块。
+- raw docx block API 可以创建 `block_type=40` 的 add-on 块，并可写入 `view=codeChart` 的 `record`。
+
+因此需要引入“Markdown transport + raw API 替换 + canonical 验证”的复合流程。
+
+### 目标
+
+- 允许整篇文档 `overwrite` 写回。
+- 保证 Markdown 中 mermaid 最终在飞书侧落地为文本绘图 add-on（codeChart）。
+- 保证回读验证和后续远端读取都能与本地 Markdown mermaid fence 稳定对齐。
+
+### 非目标
+
+- 不依赖 whiteboard 作为 mermaid 展示载体。
+- 不尝试通过 `PATCH /blocks/:id` 修改已有 add-on block（当前实现采用删除占位块 + 创建 add-on 块）。
+
+### 新增运行时模块
+
+#### `lib/mermaid_addons.py`
+
+职责：
+
+- 从 Markdown 提取 mermaid fenced code block，并替换为稳定占位符。
+- 把飞书 Markdown 中的 `<add-ons .../>`（`component_type_id=blk_631fefbbae02400430b8f9f4` 且 `view=codeChart`）逆转换为 ` ```mermaid `。
+- 用 raw docx block API 定位占位符文本块，执行“删占位块 + 同位置插入 add-on 块”。
+- 提供 canonical 化能力（换行归一 + add-on->mermaid 归一）。
+
+### 写回与验证流程
+
+#### `bin/write_back_and_verify.py`
+
+输入：
+
+- `markdown_path`
+- `declared_doc`
+- `identity`
+
+输出 JSON：
+
+- `markdown_path`
+- `declared_doc`
+- `identity`
+- `resolved_doc_token`
+- `resolved_file_type`
+- `mode`（固定 `overwrite`）
+- `local_body_length`
+- `remote_body_length`
+- `mermaid_block_count`
+- `remote_addons_converted`
+- `remote_contains_whiteboard`
+- `addon_replacements`
+- `verified`
+- `reason`（失败时）
+- `update_result`
+
+执行步骤：
+
+1. 读取本地 Markdown 正文（忽略 frontmatter）。
+2. 提取 mermaid fence，替换成占位符文本（transport body）。
+3. 使用 `docs +update --mode overwrite` 写入 transport body。
+4. 使用 raw docx API（`GET blocks`、`DELETE children/batch_delete`、`POST children`）将占位符文本块替换为 add-on 文本绘图块。
+5. `docs +fetch` 回读远端 Markdown。
+6. 远端执行 add-on->mermaid canonical 转换，本地执行同样 canonical 转换。
+7. 只有 canonical 后严格一致才判定 `verified=true`，否则失败并返回非零退出码。
+
+失败条件补充：
+
+- 本地存在 mermaid fence 但远端 canonical 后不一致。
+- 回读仍残留 whiteboard 且无法 canonical 对齐。
+- 占位符块无法定位或替换。
+
+### 远端读取契约（用于合并/回写本地）
+
+#### `bin/fetch_remote_markdown.py`
+
+输入：
+
+- `declared_doc`
+- `identity`
+- `--canonical`（可选）
+
+输出 JSON：
+
+- `declared_doc`
+- `identity`
+- `resolved_doc_token`
+- `resolved_file_type`
+- `raw_markdown`
+- `raw_length`
+- `contains_whiteboard`
+- `addon_mermaid_converted`
+- `markdown`（默认 raw，`--canonical` 时为 canonical）
+- `length`
+
+规则：
+
+- 参与三方合并、冲突判断、回写本地前的 remote 正文读取，必须使用 `--canonical`。
+
+### 首版建链（Markdown 先存在）
+
+#### 问题
+
+`docs +create` 对 mermaid 会直接产出 whiteboard，因此“从本地 markdown 生成首版飞书文档”后会与常态同步格式不一致。
+
+#### 方案
+
+新增 `bin/create_bootstrap_doc.py`：
+
+- 用本地 Markdown 正文创建飞书文档（内部仍调用 `docs +create`）。
+- 明确输出 `bootstrap_warning`：该路径会产生 whiteboard，需要后续规范化重写。
+
+推荐首版建链流程：
+
+1. `create_bootstrap_doc.py` 创建文档，获得 `doc_id/doc_url`。
+2. `write_frontmatter_binding.py` 写回绑定。
+3. 立即执行一次 `write_back_and_verify.py`，把 whiteboard 纠正为文本绘图 add-on，并完成 canonical 验证。
+4. 之后进入常规 sync 流程与 sync commit 收尾。
+
+### Skill 文档要求增补
+
+`SKILL.md` 必须新增并保持一致：
+
+- 远端正文读取需使用 `bin/fetch_remote_markdown.py --canonical`。
+- 回写由 `bin/write_back_and_verify.py` 统一处理 mermaid->文本绘图 add-on 的替换与验证。
+- 新增首版建链流程说明（`bin/create_bootstrap_doc.py` + `write_back_and_verify.py` 二次规范化）。
+
+### 测试要求增补
+
+新增或更新覆盖：
+
+- `lib/mermaid_addons.py` 的 fence 提取、add-on 逆转换、非目标 add-on 忽略。
+- `write_back_and_verify.py` smoke contract：
+  - 触发 raw API 替换流程；
+  - 返回 `mermaid_block_count`、`addon_replacements`、`remote_addons_converted`；
+  - canonical 不一致时返回非零。
+- `fetch_remote_markdown.py` canonical 输出合同。
+- `create_bootstrap_doc.py` 合同：输出建链警告并能识别 whiteboard。
+- `lark_cli.py` 支持 `cwd` 透传（满足 `--markdown @relative-path` 约束）。
+
+### 验收标准增补
+
+- Markdown 中 mermaid fence 回写后，在飞书侧应为文本绘图 add-on（codeChart）。
+- 远端 fetch canonical 后可稳定还原为 mermaid fence，并与本地正文可比较。
+- 首版建链有明确脚本化路径，且能在建链后一次规范化重写消除 whiteboard 偏差。

@@ -912,3 +912,92 @@ git commit -m 'chore: verify packaging workflow and test matrix'
 
 - 若希望更快推进，优先选 `subagent-driven-development`，每个 Task 由独立 sub-agent 执行后主 agent 复核。
 - 若希望串行可控，选 `executing-plans` 在当前会话按 Task 顺序执行。
+
+### Task 8: Mermaid 文本绘图 add-on 全流程改造
+
+**Files:**
+- Create: `skills/markdown-larkdoc-sync/lib/mermaid_addons.py`
+- Modify: `skills/markdown-larkdoc-sync/lib/lark_cli.py`
+- Modify: `skills/markdown-larkdoc-sync/bin/write_back_and_verify.py`
+- Create: `skills/markdown-larkdoc-sync/bin/fetch_remote_markdown.py`
+- Create: `skills/markdown-larkdoc-sync/bin/create_bootstrap_doc.py`
+- Modify: `skills/markdown-larkdoc-sync/SKILL.md`
+- Modify: `tests/markdown-larkdoc-sync/test_cli_smoke_contracts.py`
+- Create: `tests/markdown-larkdoc-sync/test_mermaid_addons.py`
+- Modify: `tests/markdown-larkdoc-sync/test_lark_cli.py`
+- Modify: `tests/markdown-larkdoc-sync/test_layout_contract.py`
+- Modify: `tests/test_skill_docs.py`
+- Modify: `tests/markdown-larkdoc-sync/test_repo_boundary_contract.py`
+
+- [x] **Step 1: 增加 Mermaid canonical 与 add-on 替换公共库**
+
+实现 `lib/mermaid_addons.py`，包含：
+
+- mermaid fenced code block -> 占位符替换。
+- `<add-ons .../>`（codeChart）-> mermaid fence 逆转换。
+- canonical 归一化（add-on 转换 + 换行归一）。
+- raw docx block API 占位符替换流程（GET blocks / DELETE children batch / POST children add-on）。
+
+- [x] **Step 2: 调整 lark_cli 支持 cwd 透传**
+
+在 `LarkCLI.run_json` 增加 `cwd` 参数，满足 `lark-cli --markdown @relative-path` 只能读取当前目录内相对路径的约束。
+
+- [x] **Step 3: 升级 write_back_and_verify.py 为“overwrite + raw add-on 替换 + canonical 验证”**
+
+核心行为：
+
+1. 读取本地正文并提取 mermaid fence。
+2. 先 `docs +update --mode overwrite` 写入占位符正文。
+3. 再用 raw docx API 在原位置把占位符替换为文本绘图 add-on。
+4. 回读 remote，做 canonical 比较；不一致则失败并返回非零。
+
+- [x] **Step 4: 新增远端读取与首版建链脚本**
+
+- `bin/fetch_remote_markdown.py`：支持 `--canonical` 输出，供 merge / 本地回写路径统一使用。
+- `bin/create_bootstrap_doc.py`：支持“本地 Markdown 已有、远端无文档”的首版建链，并输出 whiteboard 风险告警。
+
+- [x] **Step 5: 更新 skill 文档，覆盖 Mermaid 特殊流程**
+
+`SKILL.md` 增加：
+
+- 强制 `fetch_remote_markdown.py --canonical`。
+- `write_back_and_verify.py` 的 add-on 替换语义与失败条件。
+- 首版建链流程（create_bootstrap_doc -> 写 frontmatter 绑定 -> write_back_and_verify 规范化）。
+
+- [x] **Step 6: 更新合同测试并补齐新测试**
+
+- 扩展 fake lark-cli 支持 `api GET/DELETE/POST` docx block 流程模拟。
+- 扩展 write_back 合同测试，验证 raw API 调用序列与 canonical 结果。
+- 新增 `test_mermaid_addons.py`。
+- 新增 lark_cli cwd 测试。
+- 更新 layout / skill docs / repo boundary 合同测试。
+
+- [x] **Step 7: 运行目标测试集验证改造**
+
+执行：
+
+```bash
+python3 -m pytest tests/markdown-larkdoc-sync -q
+```
+
+预期：通过，且 Mermaid add-on 新增路径全部受测。
+
+### Task 9: 文档回填（spec + plan）
+
+**Files:**
+- Modify: `docs/superpowers/specs/2026-04-11-lark-skills-packaging-design.md`
+- Modify: `docs/superpowers/plans/2026-04-11-lark-skills-packaging.md`
+
+- [x] **Step 1: 在 spec 中补齐 Mermaid 文本绘图 add-on 方案**
+
+新增内容必须覆盖：
+
+- 为什么 `docs +update/+create` 不能直接满足场景。
+- write_back_and_verify 新流程（占位符 + raw API + canonical 验证）。
+- fetch_remote_markdown canonical 读取契约。
+- create_bootstrap_doc 首版建链策略。
+- 验收与测试新增项。
+
+- [x] **Step 2: 在 plan 中追加实现任务与验证步骤**
+
+新增 task，明确文件改动范围、测试范围、以及与已有 Task 的衔接关系，避免“只改 write_back、不改全流程”的遗漏。
